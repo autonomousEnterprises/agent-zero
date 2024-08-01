@@ -66,17 +66,24 @@ async def main():
     application.add_error_handler(error)
 
     # Start the Bot
-    await application.run_polling()
+    await application.initialize()
+    await application.start()
+    await application.updater.start_polling()
+    await application.stop()
+    await application.shutdown()
 
 if __name__ == '__main__':
     print("Starting Telegram bot...")
 
     # Check if an event loop is already running
     try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    if loop and loop.is_running():
+        # If an event loop is already running, run the bot using `create_task`
+        loop.create_task(main())
+    else:
+        # If no event loop is running, use `asyncio.run()`
         asyncio.run(main())
-    except RuntimeError as e:
-        if str(e).startswith("This event loop is already running"):
-            loop = asyncio.get_running_loop()
-            loop.create_task(main())
-        else:
-            raise
