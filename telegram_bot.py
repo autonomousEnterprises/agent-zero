@@ -39,10 +39,6 @@ async def start(update: Update, context: CallbackContext) -> None:
 async def handle_message(update: Update, context: CallbackContext) -> None:
     user_input = update.message.text.strip()
 
-    if user_input.lower() == 'e':
-        await update.message.reply_text("Goodbye!")
-        return
-
     # Send the user's message to the agent
     assistant_response = agent0.message_loop(user_input)
 
