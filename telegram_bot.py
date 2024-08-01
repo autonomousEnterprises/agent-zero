@@ -65,9 +65,9 @@ async def main():
     application.add_error_handler(error)
 
     # Start the Bot
-    await application.start_polling()
+    await application.run_polling()
 
 if __name__ == '__main__':
-    import asyncio
     print("Starting Telegram bot...")
+    import asyncio
     asyncio.run(main())
