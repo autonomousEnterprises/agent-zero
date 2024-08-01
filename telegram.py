@@ -1,9 +1,7 @@
-import threading, time, os, logging
+import logging
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 from agent import Agent, AgentConfig
-from python.helpers.print_style import PrintStyle
-import python.helpers.files as files
 import models
 
 # Configure logging
@@ -33,43 +31,43 @@ def initialize_agent():
 agent0 = initialize_agent()
 
 # Start command handler
-def start(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text("Hi! I'm your AI agent. How can I assist you today?")
+async def start(update: Update, context: CallbackContext) -> None:
+    await update.message.reply_text("Hi! I'm your AI agent. How can I assist you today?")
 
 # Handle user messages
-def handle_message(update: Update, context: CallbackContext) -> None:
+async def handle_message(update: Update, context: CallbackContext) -> None:
     user_input = update.message.text.strip()
-    user_id = update.message.from_user.id
 
     if user_input.lower() == 'e':
-        update.message.reply_text("Goodbye!")
+        await update.message.reply_text("Goodbye!")
         return
 
     # Send the user's message to the agent
     assistant_response = agent0.message_loop(user_input)
 
     # Send the response back to the user
-    update.message.reply_text(assistant_response)
+    await update.message.reply_text(assistant_response)
 
 # Error handler
-def error(update: Update, context: CallbackContext) -> None:
+async def error(update: Update, context: CallbackContext) -> None:
     logger.warning(f"Update {update} caused error {context.error}")
 
 # Main function to set up the bot
-def main():
-    # Set up the updater and dispatcher
-    updater = Updater(TOKEN, use_context=True)
-    dispatcher = updater.dispatcher
+async def main():
+    # Create the Application and pass it your bot's token.
+    application = Application.builder().token(TOKEN).build()
 
     # Set up command and message handlers
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
-    dispatcher.add_error_handler(error)
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    # Start the bot
-    updater.start_polling()
-    updater.idle()
+    # Log all errors
+    application.add_error_handler(error)
+
+    # Start the Bot
+    await application.start_polling()
 
 if __name__ == '__main__':
+    import asyncio
     print("Starting Telegram bot...")
-    main()
+    asyncio.run(main())
