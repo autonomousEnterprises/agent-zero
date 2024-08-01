@@ -61,10 +61,12 @@ async def main():
     # Log all errors
     application.add_error_handler(error)
 
-    # Start the Bot
+    # Start the bot
     await application.initialize()
     await application.start()
     await application.updater.start_polling()
+
+    # Wait for shutdown signal
     await application.stop()
     await application.shutdown()
 
