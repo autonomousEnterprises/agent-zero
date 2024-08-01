@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
@@ -69,5 +70,13 @@ async def main():
 
 if __name__ == '__main__':
     print("Starting Telegram bot...")
-    import asyncio
-    asyncio.run(main())
+
+    # Check if an event loop is already running
+    try:
+        asyncio.run(main())
+    except RuntimeError as e:
+        if str(e).startswith("This event loop is already running"):
+            loop = asyncio.get_running_loop()
+            loop.create_task(main())
+        else:
+            raise
