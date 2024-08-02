@@ -96,6 +96,9 @@ def initialize(token: str):
     application.add_handler(CommandHandler('start', start))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
+    # Store the agent configuration in bot_data for access in handlers
+    application.bot_data['config'] = config
+
     # Start the bot
     application.run_polling()
 
@@ -142,8 +145,7 @@ if __name__ == "__main__":
     TELEGRAM_BOT_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'
     print("Initializing framework...")
 
-    # Store the agent configuration in bot_data for access in handlers
-    application.bot_data['config'] = config
+    print("Initializing framework...")
 
     # Start the key capture thread for user intervention during agent streaming
     threading.Thread(target=capture_keys, daemon=True).start()
