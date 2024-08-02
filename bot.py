@@ -1,6 +1,8 @@
+#!/usr/bin/env python3
 import threading, time, models, os
 from telegram import Update, Bot
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
+from queue import Queue
 from ansio import application_keypad, mouse_input, raw_input
 from ansio.input import InputEvent, get_input_event
 from agent import Agent, AgentConfig
@@ -14,13 +16,13 @@ input_lock = threading.Lock()
 os.chdir(files.get_abs_path("./work_dir")) #change CWD to work_dir
 
 
-def start(update: Update, context: CallbackContext):
-    update.message.reply_text('Hi! I am your AI assistant. How can I help you today?')
+async def start(update: Update, context: CallbackContext):
+    await update.message.reply_text('Hi! I am your AI assistant. How can I help you today?')
 
-def handle_message(update: Update, context: CallbackContext):
+async def handle_message(update: Update, context: CallbackContext):
     user_input = update.message.text
     assistant_response = context.bot_data['agent'].message_loop(user_input)
-    update.message.reply_text(assistant_response)
+    await update.message.reply_text(assistant_response)
 
 def initialize(token: str):
     
@@ -85,19 +87,18 @@ def initialize(token: str):
     agent0 = Agent(number=0, config=config)
 
     # Set up the Telegram bot
-    updater = Updater(token, use_context=True)
-    dispatcher = updater.dispatcher
+    update_queue = Queue()
+    application = Application.builder().token(token).build()
 
     # Store the agent in bot_data for access in handlers
-    dispatcher.bot_data['agent'] = agent0
+    application.bot_data['agent'] = agent0
 
     # Add handlers
-    dispatcher.add_handler(CommandHandler('start', start))
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
+    application.add_handler(CommandHandler('start', start))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     # Start the bot
-    updater.start_polling()
-    updater.idle()
+    application.run_polling()
 
 
 
