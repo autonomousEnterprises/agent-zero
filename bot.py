@@ -21,7 +21,10 @@ async def start(update: Update, context: CallbackContext):
 
 async def handle_message(update: Update, context: CallbackContext):
     user_input = update.message.text
-    assistant_response = context.bot_data['agent'].message_loop(user_input)
+    chat_id = update.message.chat_id
+    if chat_id not in context.bot_data:
+        context.bot_data[chat_id] = Agent(number=chat_id, config=context.bot_data['config'])
+    assistant_response = context.bot_data[chat_id].message_loop(user_input)
     await update.message.reply_text(assistant_response)
 
 def initialize(token: str):
@@ -83,15 +86,11 @@ def initialize(token: str):
         # additional = {},
     )
     
-    # Create the first agent
-    agent0 = Agent(number=0, config=config)
 
     # Set up the Telegram bot
     update_queue = Queue()
     application = Application.builder().token(token).build()
 
-    # Store the agent in bot_data for access in handlers
-    application.bot_data['agent'] = agent0
 
     # Add handlers
     application.add_handler(CommandHandler('start', start))
@@ -142,6 +141,9 @@ if __name__ == "__main__":
     # Replace 'YOUR_TELEGRAM_BOT_TOKEN' with your actual Telegram bot token
     TELEGRAM_BOT_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'
     print("Initializing framework...")
+
+    # Store the agent configuration in bot_data for access in handlers
+    application.bot_data['config'] = config
 
     # Start the key capture thread for user intervention during agent streaming
     threading.Thread(target=capture_keys, daemon=True).start()
