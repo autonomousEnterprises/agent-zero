@@ -17,7 +17,7 @@ os.chdir(files.get_abs_path("./work_dir")) #change CWD to work_dir
 
 
 async def start(update: Update, context: CallbackContext):
-    await update.message.reply_text('Hi! I am your AI assistant. How can I help you today?')
+    await update.message.reply_text('Hi! I am your autonomous AI Agent. How can I help you today?')
 
 async def handle_message(update: Update, context: CallbackContext):
     user_input = update.message.text
@@ -145,8 +145,6 @@ if __name__ == "__main__":
     TELEGRAM_API_KEY = os.getenv('TELEGRAM_API_KEY')
     if not TELEGRAM_API_KEY:
         raise ValueError("TELEGRAM_API_KEY environment variable not set")
-    print("Initializing framework...")
-
     print("Initializing framework...")
 
     # Start the key capture thread for user intervention during agent streaming
