@@ -44,7 +44,8 @@ class Agent:
     paused=False
     streaming_agent=None
     
-    def __init__(self, number:int, config: AgentConfig):
+    def __init__(self, number:int, config: AgentConfig, work_dir: str):
+        self.work_dir = work_dir
 
         # agent config  
         self.config = config       
@@ -63,7 +64,7 @@ class Agent:
         self.rate_limiter = rate_limiter.RateLimiter(max_calls=self.config.rate_limit_requests,max_input_tokens=self.config.rate_limit_input_tokens,max_output_tokens=self.config.rate_limit_output_tokens,window_seconds=self.config.rate_limit_seconds)
         self.data = {} # free data object all the tools can use
 
-        os.chdir(files.get_abs_path("./work_dir")) #change CWD to work_dir
+        os.chdir(self.work_dir) # change CWD to the unique work_dir
         
 
     def message_loop(self, msg: str):

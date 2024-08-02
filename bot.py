@@ -23,7 +23,10 @@ async def handle_message(update: Update, context: CallbackContext):
     user_input = update.message.text
     chat_id = update.message.chat_id
     if chat_id not in context.bot_data:
-        context.bot_data[chat_id] = Agent(number=chat_id, config=context.bot_data['config'])
+        # Create a unique working directory for this chat
+        chat_work_dir = files.get_abs_path(f"./work_dir/chat_{chat_id}")
+        os.makedirs(chat_work_dir, exist_ok=True)
+        context.bot_data[chat_id] = Agent(number=chat_id, config=context.bot_data['config'], work_dir=chat_work_dir)
     assistant_response = context.bot_data[chat_id].message_loop(user_input)
     await update.message.reply_text(assistant_response)
 
