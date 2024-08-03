@@ -67,7 +67,7 @@ class Agent:
         os.chdir(self.work_dir) # change CWD to the unique work_dir
         
 
-    def message_loop(self, msg: str, callback=None):
+    def message_loop(self, msg: str):
         try:
             printer = PrintStyle(italic=True, font_color="#b3ffd9", padding=False)    
             user_message = files.read_file("./prompts/fw.user_message.md", message=msg)
@@ -123,6 +123,7 @@ class Agent:
                             self.append_message(agent_response) # Append the assistant's response to the history
                             tools_result = self.process_tools(agent_response) # process tools requested in agent message
                             if tools_result: return tools_result #break the execution if the task is done
+                        return agent_response
 
                 # Forward errors to the LLM, maybe he can fix them
                 except Exception as e:
@@ -154,7 +155,7 @@ class Agent:
     def concat_messages(self,messages):
         return "\n".join([f"{msg.type}: {msg.content}" for msg in messages])
 
-    def send_adhoc_message(self, system: str, msg: str, output_label:str, callback=None):
+    def send_adhoc_message(self, system: str, msg: str, output_label:str):
         prompt = ChatPromptTemplate.from_messages([
             SystemMessage(content=system),
             HumanMessage(content=msg)])
@@ -178,10 +179,7 @@ class Agent:
             elif hasattr(chunk, "content"): content = str(chunk.content)
             else: content = str(chunk)
 
-            if printer: 
-                printer.stream(content)
-            if callback:
-                callback(content)
+            if printer: printer.stream(content)
             response+=content
 
         self.rate_limiter.set_output_tokens(int(len(response)/4))
