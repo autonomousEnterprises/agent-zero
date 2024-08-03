@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import threading, time, models, os, signal
+import threading, time, models, os, signal, fcntl
 from telegram import Update, Bot
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext, Defaults
 from queue import Queue
@@ -33,21 +33,14 @@ async def handle_message(update: Update, context: CallbackContext):
     assistant_response = context.bot_data[chat_id].message_loop(user_input, callback=callback)
     await update.message.reply_text(assistant_response)
 
-def terminate_existing_bot_instances():
-    pid_file = "/tmp/telegram_bot.pid"
-    if os.path.exists(pid_file):
-        with open(pid_file, "r") as file:
-            pid = int(file.read().strip())
-            try:
-                os.kill(pid, signal.SIGTERM)
-                print(f"Terminated existing bot instance with PID {pid}")
-            except ProcessLookupError:
-                print(f"No process found with PID {pid}")
-    with open(pid_file, "w") as file:
-        file.write(str(os.getpid()))
-
 def initialize(token: str):
-    terminate_existing_bot_instances()
+    lock_file = "/tmp/telegram_bot.lock"
+    lock_fd = os.open(lock_file, os.O_CREAT | os.O_RDWR)
+    try:
+        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        print("Another instance of the bot is already running. Exiting.")
+        os._exit(1)
     
     # main chat model used by agents (smarter, more accurate)
 
