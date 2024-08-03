@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import threading, time, models, os
 from telegram import Update, Bot
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext, Defaults
 from queue import Queue
 from ansio import application_keypad, mouse_input, raw_input
 from ansio.input import InputEvent, get_input_event
@@ -33,7 +33,10 @@ async def handle_message(update: Update, context: CallbackContext):
     assistant_response = context.bot_data[chat_id].message_loop(user_input, callback=callback)
     await update.message.reply_text(assistant_response)
 
-def initialize(token: str):
+async def set_webhook(application: Application, webhook_url: str):
+    await application.bot.set_webhook(webhook_url)
+
+def initialize(token: str, webhook_url: str):
     
     # main chat model used by agents (smarter, more accurate)
 
@@ -95,7 +98,8 @@ def initialize(token: str):
 
     # Set up the Telegram bot
     update_queue = Queue()
-    application = Application.builder().token(token).build()
+    defaults = Defaults(parse_mode='HTML')
+    application = Application.builder().token(token).defaults(defaults).build()
 
 
     # Add handlers
@@ -106,7 +110,13 @@ def initialize(token: str):
     application.bot_data['config'] = config
 
     # Start the bot
-    application.run_polling()
+    application.job_queue.run_once(set_webhook, 0, data=webhook_url)
+    application.run_webhook(
+        listen="0.0.0.0",
+        port=int(os.environ.get("PORT", 8443)),
+        url_path=token,
+        webhook_url=webhook_url
+    )
 
 
 
