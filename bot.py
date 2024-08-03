@@ -156,9 +156,4 @@ if __name__ == "__main__":
 
     # Start the key capture thread for user intervention during agent streaming
     threading.Thread(target=capture_keys, daemon=True).start()
-
-    # Start the bot
-    WEBHOOK_URL = os.getenv('WEBHOOK_URL')
-    if not WEBHOOK_URL:
-        raise ValueError("WEBHOOK_URL environment variable not set")
     initialize(TELEGRAM_API_KEY)
