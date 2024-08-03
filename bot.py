@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-import threading, time, models, os, signal, fcntl
+import threading, time, models, os
 from telegram import Update, Bot
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext, Defaults
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 from queue import Queue
 from ansio import application_keypad, mouse_input, raw_input
 from ansio.input import InputEvent, get_input_event
@@ -27,20 +27,11 @@ async def handle_message(update: Update, context: CallbackContext):
         chat_work_dir = files.get_abs_path(f"./work_dir/chat_{chat_id}")
         os.makedirs(chat_work_dir, exist_ok=True)
         context.bot_data[chat_id] = Agent(number=chat_id, config=context.bot_data['config'], work_dir=chat_work_dir)
-    def callback(response):
-        context.bot.send_message(chat_id=chat_id, text=response)
-    
-    assistant_response = context.bot_data[chat_id].message_loop(user_input, callback=callback)
-    await update.message.reply_text(assistant_response)
+    assistant_response = context.bot_data[chat_id].message_loop(user_input)
+    for response in assistant_response:
+        await update.message.reply_text(response)
 
 def initialize(token: str):
-    lock_file = "/tmp/telegram_bot.lock"
-    lock_fd = os.open(lock_file, os.O_CREAT | os.O_RDWR)
-    try:
-        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except BlockingIOError:
-        print("Another instance of the bot is already running. Exiting.")
-        os._exit(1)
     
     # main chat model used by agents (smarter, more accurate)
 
@@ -102,8 +93,7 @@ def initialize(token: str):
 
     # Set up the Telegram bot
     update_queue = Queue()
-    defaults = Defaults(parse_mode='HTML')
-    application = Application.builder().token(token).defaults(defaults).build()
+    application = Application.builder().token(token).build()
 
 
     # Add handlers
@@ -163,4 +153,6 @@ if __name__ == "__main__":
 
     # Start the key capture thread for user intervention during agent streaming
     threading.Thread(target=capture_keys, daemon=True).start()
+
+    # Start the bot
     initialize(TELEGRAM_API_KEY)
