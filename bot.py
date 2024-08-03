@@ -28,8 +28,7 @@ async def handle_message(update: Update, context: CallbackContext):
         os.makedirs(chat_work_dir, exist_ok=True)
         context.bot_data[chat_id] = Agent(number=chat_id, config=context.bot_data['config'], work_dir=chat_work_dir)
     assistant_response = context.bot_data[chat_id].message_loop(user_input)
-    for response in assistant_response:
-        await update.message.reply_text(response)
+    await update.message.reply_text(assistant_response)
 
 def initialize(token: str):
     
