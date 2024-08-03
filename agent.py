@@ -67,7 +67,7 @@ class Agent:
         os.chdir(self.work_dir) # change CWD to the unique work_dir
         
 
-    def message_loop(self, msg: str):
+    def message_loop(self, msg: str, callback=None):
         try:
             printer = PrintStyle(italic=True, font_color="#b3ffd9", padding=False)    
             user_message = files.read_file("./prompts/fw.user_message.md", message=msg)
@@ -154,7 +154,7 @@ class Agent:
     def concat_messages(self,messages):
         return "\n".join([f"{msg.type}: {msg.content}" for msg in messages])
 
-    def send_adhoc_message(self, system: str, msg: str, output_label:str):
+    def send_adhoc_message(self, system: str, msg: str, output_label:str, callback=None):
         prompt = ChatPromptTemplate.from_messages([
             SystemMessage(content=system),
             HumanMessage(content=msg)])
@@ -178,7 +178,10 @@ class Agent:
             elif hasattr(chunk, "content"): content = str(chunk.content)
             else: content = str(chunk)
 
-            if printer: printer.stream(content)
+            if printer: 
+                printer.stream(content)
+            if callback:
+                callback(content)
             response+=content
 
         self.rate_limiter.set_output_tokens(int(len(response)/4))
