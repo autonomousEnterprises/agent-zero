@@ -33,10 +33,7 @@ async def handle_message(update: Update, context: CallbackContext):
     assistant_response = context.bot_data[chat_id].message_loop(user_input, callback=callback)
     await update.message.reply_text(assistant_response)
 
-async def set_webhook(application: Application, webhook_url: str):
-    await application.bot.set_webhook(webhook_url)
-
-def initialize(token: str, webhook_url: str):
+def initialize(token: str):
     
     # main chat model used by agents (smarter, more accurate)
 
@@ -110,13 +107,7 @@ def initialize(token: str, webhook_url: str):
     application.bot_data['config'] = config
 
     # Start the bot
-    application.job_queue.run_once(set_webhook, 0, data=webhook_url)
-    application.run_webhook(
-        listen="0.0.0.0",
-        port=int(os.environ.get("PORT", 8443)),
-        url_path=token,
-        webhook_url=webhook_url
-    )
+    application.run_polling()
 
 
 
@@ -170,4 +161,4 @@ if __name__ == "__main__":
     WEBHOOK_URL = os.getenv('WEBHOOK_URL')
     if not WEBHOOK_URL:
         raise ValueError("WEBHOOK_URL environment variable not set")
-    initialize(TELEGRAM_API_KEY, WEBHOOK_URL)
+    initialize(TELEGRAM_API_KEY)
